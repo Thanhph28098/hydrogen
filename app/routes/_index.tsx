@@ -1,4 +1,5 @@
 import {defer, type LoaderArgs} from '@shopify/remix-oxygen';
+import * as StorefrontAPI from '@shopify/hydrogen/storefront-api-types';
 import {
   Await,
   useLoaderData,
@@ -66,9 +67,52 @@ function RecommendedProducts({
       <h2>Recommended Products</h2>
       <Suspense fallback={<div>Loading...</div>}>
         <Await resolve={products}>
-          {({products}) => (
+          {({products}) => {
+            const addedProducts: Array<
+            Pick<StorefrontAPI.Product, 'id' | 'title' | 'handle'> & {
+              priceRange: {
+                minVariantPrice: Pick<
+                  StorefrontAPI.MoneyV2,
+                  'amount' | 'currencyCode'
+                >;
+              };
+              images: {
+                nodes: Array<
+                  Pick<
+                    StorefrontAPI.Image,
+                    'id' | 'url' | 'altText' | 'width' | 'height'
+                  >
+                >;
+              };
+            }
+          > = [
+            ...products.nodes,
+            {
+              handle: 'demo-product',
+              id: '1',
+              images: {
+                nodes: [
+                  {
+                    altText: '',
+                    height: 4096,
+                    id: '2',
+                    url: 'https://cdn.shopify.com/s/files/1/0688/1755/1382/products/GreenWomensTshirt01.jpg?v=1675463247',
+                    width: 4096,
+                  },
+                ],
+              },
+              priceRange: {
+                minVariantPrice: {
+                  amount: '31.0',
+                  currencyCode: 'VND',
+                },
+              },
+              title: 'Demo Product',
+            },
+          ];
+            return (
             <div className="recommended-products-grid">
-              {products.nodes.map((product) => (
+              {addedProducts.map((product) => (
                 <Link
                   key={product.id}
                   className="recommended-product"
@@ -86,7 +130,7 @@ function RecommendedProducts({
                 </Link>
               ))}
             </div>
-          )}
+          )}}
         </Await>
       </Suspense>
       <br />
